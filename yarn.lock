@@ -5,6 +5,13 @@ __metadata:
   version: 8
   cacheKey: 10c0
 
+"@bufbuild/protobuf@npm:^2.9.0":
+  version: 2.12.0
+  resolution: "@bufbuild/protobuf@npm:2.12.0"
+  checksum: 10c0/28959e371fd2e7c8d67d52af9e3c8f8e6770e2e116dcc5508f469ca736afa6905e216bc76183835898a5f3deb8aa2e7db47d4a0e706fba76115e9a1996893191
+  languageName: node
+  linkType: hard
+
 "@emnapi/runtime@npm:^1.7.0":
   version: 1.10.0
   resolution: "@emnapi/runtime@npm:1.10.0"
@@ -304,6 +311,42 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@openfeature/core@npm:^1.9.0":
+  version: 1.10.0
+  resolution: "@openfeature/core@npm:1.10.0"
+  checksum: 10c0/b025639bf076a0f351f94c79fc30f6e6e23577f391a1154e5f8f4c5641042556e52182131e1065728c4c9012bcf144317fbf4fb2634bb62f2f01053a596b53d2
+  languageName: node
+  linkType: hard
+
+"@openfeature/server-sdk@npm:^1.19.0":
+  version: 1.21.0
+  resolution: "@openfeature/server-sdk@npm:1.21.0"
+  peerDependencies:
+    "@openfeature/core": ^1.10.0
+  checksum: 10c0/66fdb82456971591cac69371c71ff8a76037563d2d57d9a02c0801e9c225ee16a6183d06ab946e640fd882cdb5e72757471758ec56f5090dc0e0b78828369216
+  languageName: node
+  linkType: hard
+
+"@spotify-confidence/openfeature-server-provider-local@npm:^0.12.1":
+  version: 0.12.1
+  resolution: "@spotify-confidence/openfeature-server-provider-local@npm:0.12.1"
+  dependencies:
+    "@bufbuild/protobuf": "npm:^2.9.0"
+  peerDependencies:
+    "@openfeature/core": ^1.0.0
+    debug: ^4.4.3
+    react: ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@openfeature/core":
+      optional: true
+    debug:
+      optional: true
+    react:
+      optional: true
+  checksum: 10c0/29553fb208b4667f015fc82cdb5aafb5f7fe99bf6d0c2c0b1d4ce9f91a537b6bded9c0c27fd1b9547a7b5430c00be448e5a1da439dea8ffb2f1f29456779048f
+  languageName: node
+  linkType: hard
+
 "@swc/helpers@npm:0.5.15":
   version: 0.5.15
   resolution: "@swc/helpers@npm:0.5.15"
@@ -367,6 +410,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "confidence-nextjs-pages@workspace:."
   dependencies:
+    "@openfeature/core": "npm:^1.9.0"
+    "@openfeature/server-sdk": "npm:^1.19.0"
+    "@spotify-confidence/openfeature-server-provider-local": "npm:^0.12.1"
     "@types/node": "npm:^20"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"

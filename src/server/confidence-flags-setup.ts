@@ -8,6 +8,8 @@ if (!flagClientSecret) {
   );
 }
 
-const provider = createConfidenceServerProvider({ flagClientSecret });
+export const confidenceProvider = createConfidenceServerProvider({
+  flagClientSecret,
+});
 
-await OpenFeature.setProviderAndWait(provider);
+await OpenFeature.setProviderAndWait(confidenceProvider);

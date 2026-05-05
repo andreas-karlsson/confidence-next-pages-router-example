@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import type { GetServerSidePropsContext } from "next";
 
-const COOKIE_NAME = "cf_visitor_id";
+export const VISITOR_COOKIE = "cf_visitor_id";
+const COOKIE_NAME = VISITOR_COOKIE;
 const ONE_YEAR_S = 60 * 60 * 24 * 365;
 
 type Req = GetServerSidePropsContext["req"];

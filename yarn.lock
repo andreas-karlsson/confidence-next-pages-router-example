@@ -327,9 +327,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@spotify-confidence/openfeature-server-provider-local@file:./vendor/openfeature-server-provider-local.tgz::locator=confidence-nextjs-pages%40workspace%3A.":
-  version: 0.12.1
-  resolution: "@spotify-confidence/openfeature-server-provider-local@file:./vendor/openfeature-server-provider-local.tgz#./vendor/openfeature-server-provider-local.tgz::hash=3b718c&locator=confidence-nextjs-pages%40workspace%3A."
+"@spotify-confidence/openfeature-server-provider-local@npm:^0.13.0":
+  version: 0.13.0
+  resolution: "@spotify-confidence/openfeature-server-provider-local@npm:0.13.0"
   dependencies:
     "@bufbuild/protobuf": "npm:^2.9.0"
   peerDependencies:
@@ -346,7 +346,7 @@ __metadata:
       optional: true
     react:
       optional: true
-  checksum: 10c0/29b142d8e2d774c7547ee250f1abe16cca44a395b6718c69644a0ba562bc9dad48f3c751fa7d7ba37c3d13d27b2ad7d1affeffc51441c0d407f58062d38d302b
+  checksum: 10c0/72c0d5a993fba89443f43d2d6a40e12ed1ec311776264455ed02aea89bd63554663af01e91ac8ce51da097ea5508d16f5921627f8561261a0a8699570b64e702
   languageName: node
   linkType: hard
 
@@ -415,7 +415,7 @@ __metadata:
   dependencies:
     "@openfeature/core": "npm:^1.9.0"
     "@openfeature/server-sdk": "npm:^1.19.0"
-    "@spotify-confidence/openfeature-server-provider-local": "file:./vendor/openfeature-server-provider-local.tgz"
+    "@spotify-confidence/openfeature-server-provider-local": "npm:^0.13.0"
     "@types/node": "npm:^20"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"

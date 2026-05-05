@@ -1,84 +1,124 @@
 import { OpenFeature, type JsonValue } from "@openfeature/server-sdk";
 import { useFlagDetails } from "@spotify-confidence/openfeature-server-provider-local/react-client";
 import type { InferGetServerSidePropsType } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import Head from "next/head";
+import { useRouter } from "next/router";
+import { useState } from "react";
 import { withConfidence } from "@spotify-confidence/openfeature-server-provider-local/pages-router/server";
 import { getOrSetVisitorId } from "@/server/visitor-id";
+import styles from "@/styles/Home.module.css";
 
-export const getServerSideProps = withConfidence(
-  {
-    context: ({ req, res }) => ({ visitor_id: getOrSetVisitorId(req, res) }),
-  },
-  async ({ req, res }) => {
-    // Direct OpenFeature resolve — fires exposure immediately. Coexists with
-    // the bundle path resolved by withConfidence below; both go through the
-    // same provider registered in instrumentation.ts.
-    const client = OpenFeature.getClient();
-    const directValue = await client.getObjectValue<JsonValue>(
-      "tutorial-feature",
-      {},
-      { visitor_id: getOrSetVisitorId(req, res) }
-    );
-    return { props: { directValue } };
+const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+
+type RedirectFlag = { enabled: false } | { enabled: true; url: string };
+
+export const getServerSideProps = withConfidence(async ({ req, res }) => {
+  const visitor_id = getOrSetVisitorId(req, res);
+
+  // Direct OpenFeature resolve — fires exposure immediately. Useful for
+  // server-side decisions like redirects where there's no client component to
+  // read from a bundle.
+  const client = OpenFeature.getClient();
+  const redirect = await client.getObjectValue<RedirectFlag>(
+    "main-page.redirect",
+    { enabled: false },
+    { visitor_id }
+  );
+  if (redirect.enabled) {
+    return { redirect: { destination: redirect.url, permanent: false } };
   }
-);
+
+  return {
+    props: { visitor_id },
+    context: { visitor_id },
+  };
+});
 
 export default function Home({
-  directValue,
+  visitor_id,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const { value: hookValue, reason, variant } = useFlagDetails<JsonValue>(
+  const router = useRouter();
+  const [resampling, setResampling] = useState(false);
+  const { value, reason, variant } = useFlagDetails<JsonValue>(
     "tutorial-feature",
     {}
   );
+
+  async function resample() {
+    setResampling(true);
+    try {
+      await fetch("/api/visitor/reset", { method: "POST" });
+      await router.replace(router.asPath, undefined, { scroll: false });
+    } finally {
+      setResampling(false);
+    }
+  }
 
   return (
     <>
       <Head>
         <title>Confidence + Next.js Pages Router</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <main style={{ fontFamily: "system-ui", padding: "2rem", maxWidth: 720 }}>
-        <h1>Confidence local resolver — Pages Router demo</h1>
-        <p>
-          Same flag, two resolution paths, same request. The provider is
-          registered once in <code>instrumentation.ts</code>; both paths read
-          from it.
-        </p>
+      <div className={`${styles.page} ${geistSans.variable} ${geistMono.variable}`}>
+        <main className={styles.demoMain}>
+          <div className={styles.intro}>
+            <p className={styles.subheading}>Confidence local resolver</p>
+            <h1 className={styles.heading}>Next.js Pages Router demo</h1>
+            <p className={styles.lead}>
+              All flag evaluation happens on the server with effectively zero
+              latency — the local resolver runs in-process, no per-evaluation
+              network round-trip. Client components read the resolved values
+              through familiar React hooks (<code>useFlag</code>,{" "}
+              <code>useFlagDetails</code>) with no further configuration, and
+              exposure is tracked automatically when a flag is first read.
+            </p>
+          </div>
 
-        <h2>Hook path</h2>
-        <p>
-          <code>withConfidence</code> resolves the bundle in{" "}
-          <code>getServerSideProps</code> without firing exposure;{" "}
-          <code>useFlagDetails</code> reads the value and POSTs to{" "}
-          <code>/api/confidence/apply</code> on mount.
-        </p>
-        <dl>
-          <dt>tutorial-feature</dt>
-          <dd>
-            <pre style={{ background: "#f4f4f4", padding: "1rem" }}>
-              {JSON.stringify(hookValue, null, 2)}
-            </pre>
-          </dd>
-          <dt>variant</dt>
-          <dd><code>{variant ?? "(none)"}</code></dd>
-          <dt>reason</dt>
-          <dd><code>{reason}</code></dd>
-        </dl>
+          <div className={styles.flag}>
+            <div className={styles.flagHeader}>
+              <span>tutorial-feature</span>
+            </div>
+            <div className={styles.flagBody}>
+              <div className={styles.meta}>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaLabel}>Variant</span>
+                  <span className={styles.metaValue}>{variant ?? "(none)"}</span>
+                </div>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaLabel}>Reason</span>
+                  <span className={styles.metaValue}>{reason}</span>
+                </div>
+              </div>
+              <pre className={styles.code}>{JSON.stringify(value, null, 2)}</pre>
+            </div>
+          </div>
 
-        <h2>Direct OpenFeature path</h2>
-        <p>
-          <code>OpenFeature.getClient().getObjectValue(...)</code> in the inner{" "}
-          <code>getServerSideProps</code> — server-side only, fires exposure
-          eagerly. No client hook involvement.
-        </p>
-        <dl>
-          <dt>tutorial-feature</dt>
-          <dd>
-            <pre style={{ background: "#f4f4f4", padding: "1rem" }}>
-              {JSON.stringify(directValue, null, 2)}
-            </pre>
-          </dd>
-        </dl>
-      </main>
+          <div className={styles.visitor}>
+            <span>
+              Visitor: <span className={styles.visitorId}>{visitor_id.slice(0, 8)}…</span>
+            </span>
+            <button
+              type="button"
+              className={styles.button}
+              onClick={resample}
+              disabled={resampling}
+            >
+              {resampling ? "Re-sampling…" : "Re-sample variant"}
+            </button>
+          </div>
+
+          <p className={styles.footnote}>
+            The same <code>getServerSideProps</code> also resolves a{" "}
+            <code>main-page.redirect</code> object flag directly via{" "}
+            <code>OpenFeature.getClient()</code>. If you configure that flag to
+            return <code>{`{ enabled: true, url: ... }`}</code>, this page will
+            redirect server-side before reaching the React tree.
+          </p>
+        </main>
+      </div>
     </>
   );
 }

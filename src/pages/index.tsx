@@ -2,7 +2,7 @@ import { OpenFeature, type JsonValue } from "@openfeature/server-sdk";
 import { useFlagDetails } from "@spotify-confidence/openfeature-server-provider-local/react-client";
 import type { InferGetServerSidePropsType } from "next";
 import Head from "next/head";
-import { withConfidence } from "@/lib/confidence-pages-router/server";
+import { withConfidence } from "@spotify-confidence/openfeature-server-provider-local/pages-router/server";
 import { getOrSetVisitorId } from "@/server/visitor-id";
 
 export const getServerSideProps = withConfidence(

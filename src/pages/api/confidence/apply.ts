@@ -1,3 +1,3 @@
-import { applyHandler } from "@/lib/confidence-pages-router/api/apply";
+import { applyHandler } from "@spotify-confidence/openfeature-server-provider-local/pages-router/api";
 
 export default applyHandler();

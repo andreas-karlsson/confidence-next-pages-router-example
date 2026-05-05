@@ -327,23 +327,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@spotify-confidence/openfeature-server-provider-local@npm:^0.12.1":
+"@spotify-confidence/openfeature-server-provider-local@file:./vendor/openfeature-server-provider-local.tgz::locator=confidence-nextjs-pages%40workspace%3A.":
   version: 0.12.1
-  resolution: "@spotify-confidence/openfeature-server-provider-local@npm:0.12.1"
+  resolution: "@spotify-confidence/openfeature-server-provider-local@file:./vendor/openfeature-server-provider-local.tgz#./vendor/openfeature-server-provider-local.tgz::hash=3b718c&locator=confidence-nextjs-pages%40workspace%3A."
   dependencies:
     "@bufbuild/protobuf": "npm:^2.9.0"
   peerDependencies:
     "@openfeature/core": ^1.0.0
     debug: ^4.4.3
+    next: ">=13.0.0"
     react: ^18.0.0 || ^19.0.0
   peerDependenciesMeta:
     "@openfeature/core":
       optional: true
     debug:
       optional: true
+    next:
+      optional: true
     react:
       optional: true
-  checksum: 10c0/29553fb208b4667f015fc82cdb5aafb5f7fe99bf6d0c2c0b1d4ce9f91a537b6bded9c0c27fd1b9547a7b5430c00be448e5a1da439dea8ffb2f1f29456779048f
+  checksum: 10c0/29b142d8e2d774c7547ee250f1abe16cca44a395b6718c69644a0ba562bc9dad48f3c751fa7d7ba37c3d13d27b2ad7d1affeffc51441c0d407f58062d38d302b
   languageName: node
   linkType: hard
 
@@ -412,7 +415,7 @@ __metadata:
   dependencies:
     "@openfeature/core": "npm:^1.9.0"
     "@openfeature/server-sdk": "npm:^1.19.0"
-    "@spotify-confidence/openfeature-server-provider-local": "npm:^0.12.1"
+    "@spotify-confidence/openfeature-server-provider-local": "file:./vendor/openfeature-server-provider-local.tgz"
     "@types/node": "npm:^20"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"

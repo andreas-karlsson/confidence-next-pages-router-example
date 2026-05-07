@@ -5,10 +5,11 @@ A minimal reference for using the [Spotify Confidence local OpenFeature provider
 ## What it shows
 
 - **`instrumentation.ts`** registers the Confidence provider with OpenFeature once at server startup.
-- **`pages/index.tsx`** uses `withConfidence(...)` from `@spotify-confidence/openfeature-server-provider-local/pages-router/server` to resolve a flag bundle for the request without firing exposure, and `useFlagDetails` from `react-client` to read flag values on the client. Exposure is logged when the hook fires (POST to `/api/confidence/apply`).
+- **`proxy.ts`** builds the per-request OpenFeature evaluation context (visitor cookie, parsed user agent, language, plus an async lookup against REST Countries) once and forwards it to downstream handlers via an `x-cf-context` header. Same proxy works for App Router code during a gradual migration — that side reads the header via `next/headers`.
+- **`pages/index.tsx`** reads the context back from the header and hands it to `withConfidence(...)`, which resolves the flag bundle for the request and merges it into `pageProps`. `useFlagDetails` reads flag values on the client; exposure is tracked automatically when the hook first reads a flag.
 - **`pages/_app.tsx`** wraps the page tree with `<ConfidencePagesProvider>` so the hooks have a bundle to read from.
 - **`pages/api/confidence/apply.ts`** is a one-line `applyHandler()` mount that closes the loop on exposure logging.
-- **`pages/api/visitor/reset.ts`** clears the demo's visitor cookie so the "Re-sample variant" button can roll a fresh targeting key (demo-only, not something a real app would expose).
+- **`pages/api/visitor/reset.ts`** clears the demo's visitor cookie so the "Re-sample variant" button can roll a fresh targeting key on the next request (the proxy re-creates the cookie). Demo-only — not something a real app would expose.
 
 The page also resolves a second flag (`main-page.redirect`) via the standard `OpenFeature.getClient().getObjectValue(...)` flow inside `getServerSideProps` to demonstrate that the bundle path doesn't replace direct OpenFeature usage — it's additive. If `main-page.redirect` returns `{ enabled: true, url: ... }`, the page redirects server-side before rendering.
 
@@ -36,10 +37,11 @@ The dependency on `@spotify-confidence/openfeature-server-provider-local` is cur
 ```
 src/
 ├── instrumentation.ts                 ← registers OpenFeature provider once at startup
-├── server/visitor-id.ts               ← demo cookie helper for the targeting key
+├── proxy.ts                           ← builds eval context (cookie, UA, locale) per request
+├── server/visitor-id.ts               ← VISITOR_COOKIE constant (shared by proxy + reset)
 ├── pages/
 │   ├── _app.tsx                       ← <ConfidencePagesProvider> wrapper
-│   ├── index.tsx                      ← withConfidence + useFlagDetails + redirect flag
+│   ├── index.tsx                      ← reads x-cf-context header, withConfidence + useFlagDetails
 │   └── api/
 │       ├── confidence/apply.ts        ← one-line applyHandler() mount
 │       └── visitor/reset.ts           ← demo-only cookie reset for the re-sample button

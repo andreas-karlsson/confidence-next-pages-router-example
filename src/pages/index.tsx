@@ -1,3 +1,4 @@
+import type { EvaluationContext } from "@openfeature/server-sdk";
 import { OpenFeature, type JsonValue } from "@openfeature/server-sdk";
 import { useFlagDetails } from "@spotify-confidence/openfeature-server-provider-local/react-client";
 import type { InferGetServerSidePropsType } from "next";
@@ -6,7 +7,6 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { withConfidence } from "@spotify-confidence/openfeature-server-provider-local/pages-router/server";
-import { getOrSetVisitorId } from "@/server/visitor-id";
 import styles from "@/styles/Home.module.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -14,8 +14,11 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 
 type RedirectFlag = { enabled: false } | { enabled: true; url: string };
 
-export const getServerSideProps = withConfidence(async ({ req, res }) => {
-  const visitor_id = getOrSetVisitorId(req, res);
+export const getServerSideProps = withConfidence(async ({ req }) => {
+  // Middleware already built the targeting context for this request and
+  // forwarded it as a header. Pages just read it back.
+  const raw = req.headers["x-cf-context"];
+  const context: EvaluationContext = typeof raw === "string" ? JSON.parse(raw) : {};
 
   // Direct OpenFeature resolve — fires exposure immediately. Useful for
   // server-side decisions like redirects where there's no client component to
@@ -24,15 +27,15 @@ export const getServerSideProps = withConfidence(async ({ req, res }) => {
   const redirect = await client.getObjectValue<RedirectFlag>(
     "main-page.redirect",
     { enabled: false },
-    { visitor_id }
+    context
   );
   if (redirect.enabled) {
     return { redirect: { destination: redirect.url, permanent: false } };
   }
 
   return {
-    props: { visitor_id },
-    context: { visitor_id },
+    props: { visitor_id: (context.visitor_id as string | undefined) ?? "" },
+    context,
   };
 });
 
@@ -98,7 +101,7 @@ export default function Home({
 
           <div className={styles.visitor}>
             <span>
-              Visitor: <span className={styles.visitorId}>{visitor_id.slice(0, 8)}…</span>
+              Visitor: <span className={styles.visitorId}>{visitor_id.slice(0, 8) || "—"}…</span>
             </span>
             <button
               type="button"
@@ -111,11 +114,15 @@ export default function Home({
           </div>
 
           <p className={styles.footnote}>
-            The same <code>getServerSideProps</code> also resolves a{" "}
+            The full targeting context (user-agent, locale, …) is built once
+            per request in <code>proxy.ts</code> and forwarded as an{" "}
+            <code>x-cf-context</code> header — only <code>visitor_id</code> is
+            shipped to the client, since the rest is server-only targeting
+            data. The same <code>getServerSideProps</code> also resolves a{" "}
             <code>main-page.redirect</code> object flag directly via{" "}
-            <code>OpenFeature.getClient()</code>. If you configure that flag to
-            return <code>{`{ enabled: true, url: ... }`}</code>, this page will
-            redirect server-side before reaching the React tree.
+            <code>OpenFeature.getClient()</code>; if you configure that flag
+            to return <code>{`{ enabled: true, url: ... }`}</code>, this page
+            redirects server-side before reaching the React tree.
           </p>
         </main>
       </div>

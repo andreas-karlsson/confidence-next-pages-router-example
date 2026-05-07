@@ -1,12 +1,12 @@
-import type { EvaluationContext } from "@openfeature/server-sdk";
 import { OpenFeature, type JsonValue } from "@openfeature/server-sdk";
 import { useFlagDetails } from "@spotify-confidence/openfeature-server-provider-local/react-client";
 import type { InferGetServerSidePropsType } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Head from "next/head";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { withConfidence } from "@spotify-confidence/openfeature-server-provider-local/pages-router/server";
+import { readBaseContext, withFlags } from "@/confidence-helpers";
 import styles from "@/styles/Home.module.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -14,11 +14,8 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 
 type RedirectFlag = { enabled: false } | { enabled: true; url: string };
 
-export const getServerSideProps = withConfidence(async ({ req }) => {
-  // Middleware already built the targeting context for this request and
-  // forwarded it as a header. Pages just read it back.
-  const raw = req.headers["x-cf-context"];
-  const context: EvaluationContext = typeof raw === "string" ? JSON.parse(raw) : {};
+export const getServerSideProps = withFlags(async (ctx) => {
+  const context = readBaseContext(ctx);
 
   // Direct OpenFeature resolve — fires exposure immediately. Useful for
   // server-side decisions like redirects where there's no client component to
@@ -35,7 +32,8 @@ export const getServerSideProps = withConfidence(async ({ req }) => {
 
   return {
     props: { visitor_id: (context.visitor_id as string | undefined) ?? "" },
-    context,
+    // No `context` returned — the base context auto-merges into flag bundle
+    // resolution thanks to applyBaseContext.
   };
 });
 
@@ -124,6 +122,10 @@ export default function Home({
             to return <code>{`{ enabled: true, url: ... }`}</code>, this page
             redirects server-side before reaching the React tree.
           </p>
+
+          <Link href="/promo" className={styles.button}>
+            See another example: page-scoped context →
+          </Link>
         </main>
       </div>
     </>

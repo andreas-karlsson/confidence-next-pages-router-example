@@ -6,7 +6,8 @@ A minimal reference for using the [Spotify Confidence local OpenFeature provider
 
 - **`instrumentation.ts`** registers the Confidence provider with OpenFeature once at server startup.
 - **`proxy.ts`** builds the per-request OpenFeature evaluation context (visitor cookie, parsed user agent, language, plus an async lookup against REST Countries) once and forwards it to downstream handlers via an `x-cf-context` header. Same proxy works for App Router code during a gradual migration — that side reads the header via `next/headers`.
-- **`pages/index.tsx`** reads the context back from the header and hands it to `withConfidence(...)`, which resolves the flag bundle for the request and merges it into `pageProps`. `useFlagDetails` reads flag values on the client; exposure is tracked automatically when the hook first reads a flag.
+- **`pages/index.tsx`** uses `withFlags` (from `src/confidence-helpers/`) which composes `withConfidence` with an `applyBaseContext` decorator. `readBaseContext(ctx)` parses the proxy-attached header for direct OpenFeature use (the redirect flag); the bundle resolution sees the same context. `useFlagDetails` reads flag values on the client; exposure is tracked automatically when the hook first reads a flag.
+- **`pages/promo.tsx`** demonstrates a page that returns its own context attribute (`is_promotional_page: true`) without reading the base. The `applyBaseContext` decorator merges it onto the proxy-derived base for resolution.
 - **`pages/_app.tsx`** wraps the page tree with `<ConfidencePagesProvider>` so the hooks have a bundle to read from.
 - **`pages/api/confidence/apply.ts`** is a one-line `applyHandler()` mount that closes the loop on exposure logging.
 - **`pages/api/visitor/reset.ts`** clears the demo's visitor cookie so the "Re-sample variant" button can roll a fresh targeting key on the next request (the proxy re-creates the cookie). Demo-only — not something a real app would expose.
@@ -39,9 +40,13 @@ src/
 ├── instrumentation.ts                 ← registers OpenFeature provider once at startup
 ├── proxy.ts                           ← builds eval context (cookie, UA, locale) per request
 ├── server/visitor-id.ts               ← VISITOR_COOKIE constant (shared by proxy + reset)
+├── confidence-helpers/                ← app-level decorators around withConfidence
+│   ├── apply-base-context.ts
+│   └── index.ts                       ← composed `withFlags` export
 ├── pages/
 │   ├── _app.tsx                       ← <ConfidencePagesProvider> wrapper
-│   ├── index.tsx                      ← reads x-cf-context header, withConfidence + useFlagDetails
+│   ├── index.tsx                      ← reads base context for direct OpenFeature use
+│   ├── promo.tsx                      ← contributes its own context attribute
 │   └── api/
 │       ├── confidence/apply.ts        ← one-line applyHandler() mount
 │       └── visitor/reset.ts           ← demo-only cookie reset for the re-sample button
